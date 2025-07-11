@@ -10,6 +10,44 @@ const evStationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Ola Maps Integration Data
+  olaMapData: {
+    place_id: String,
+    reference: String,
+    description: String,
+    types: [String],
+    layer: [String],
+    distance_meters: Number,
+    business_status: String,
+    url: String,
+    formatted_phone_number: String,
+    international_phone_number: String,
+    website: String,
+    photos: [String],
+    rating: Number,
+    amenities_available: [String],
+    wheelchair_accessibility: Boolean,
+    parking_available: Boolean,
+    is_landmark: Boolean,
+    landmark_type: String,
+    payment_mode: String,
+    popular_items: [String],
+    language_spoken: String,
+    opening_hours: {
+      open_now: Boolean,
+      periods: [{
+        open: {
+          day: Number,
+          time: String
+        },
+        close: {
+          day: Number,
+          time: String
+        }
+      }],
+      weekday_text: [String]
+    }
+  },
   location: {
     type: {
       type: String,
@@ -27,7 +65,16 @@ const evStationSchema = new mongoose.Schema({
     state: String,
     pincode: String,
     landmark: String,
-    fullAddress: String
+    fullAddress: String,
+    // Structured address from Ola Maps
+    structured_formatting: {
+      main_text: String,
+      secondary_text: String
+    },
+    terms: [{
+      offset: Number,
+      value: String
+    }]
   },
   contactInfo: {
     phone: String,
@@ -82,7 +129,17 @@ const evStationSchema = new mongoose.Schema({
     swappingTime: Number, // in minutes
     pricePerSwap: Number,
     availableBatteries: Number,
-    totalBatteries: Number
+    totalBatteries: Number,
+    swappingStations: [{
+      stationNumber: String,
+      isOperational: Boolean,
+      lastMaintenance: Date,
+      batteryTypes: [String], // Different battery capacities
+      roboticSwapping: Boolean // Automated or manual
+    }],
+    reservationRequired: Boolean,
+    advanceBookingHours: Number,
+    compatibleBrands: [String] // Vehicle brands supported
   },
   rushHourData: {
     peakHours: [{
@@ -94,37 +151,18 @@ const evStationSchema = new mongoose.Schema({
       endTime: String,
       congestionLevel: {
         type: String,
-        enum: ['LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH']
-      }
+        enum: ['LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH', 'EXTREME']
+      },
+      averageWaitTime: Number,
+      chargingDemand: String, // HIGH, MEDIUM, LOW
+      priceMultiplier: Number // Dynamic pricing during rush hours
     }],
-    averageWaitTime: {
-      peak: Number, // in minutes
-      offPeak: Number
-    },
     lastUpdated: {
       type: Date,
       default: Date.now
     }
   },
-  realTimeData: {
-    currentOccupancy: {
-      type: Number,
-      default: 0
-    },
-    totalCapacity: Number,
-    lastUpdated: {
-      type: Date,
-      default: Date.now
-    },
-    queueLength: {
-      type: Number,
-      default: 0
-    },
-    estimatedWaitTime: {
-      type: Number,
-      default: 0
-    }
-  },
+  
   ratings: {
     averageRating: {
       type: Number,
@@ -136,6 +174,28 @@ const evStationSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+  sustainabilityScore: {
+    renewableEnergyPercentage: Number,
+    carbonFootprint: Number,
+    solarPanels: Boolean,
+    windPower: Boolean,
+    greenCertification: String
+  },
+  emergencyServices: {
+    has24x7Support: Boolean,
+    towingService: Boolean,
+    emergencyCharging: Boolean,
+    breakdownAssistance: Boolean,
+    emergencyContactNumber: String
+  },
+  accessibility: {
+    wheelchairAccessible: Boolean,
+    audioAssistance: Boolean,
+    visualAssistance: Boolean,
+    brailleSignage: Boolean,
+    lowHeightChargers: Boolean,
+    assistedCharging: Boolean
   },
   isActive: {
     type: Boolean,
@@ -157,4 +217,5 @@ evStationSchema.index({ "location": "2dsphere" });
 evStationSchema.index({ "operator": 1 });
 evStationSchema.index({ "isActive": 1 });
 
-module.exports = mongoose.model('EVStation', evStationSchema);
+const evmodel=mongoose.model("EVStation",evStationSchema);
+export default evmodel;

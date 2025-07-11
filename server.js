@@ -2,6 +2,7 @@ import express from 'express';
 const app = express();
 import authRoutes from './router/driver.router.js';
 import isauth from './router/auth.router.js'
+import stationRoutes from './router/station.router.js';
 
 import cookieParser from "cookie-parser";
 import { configDotenv } from 'dotenv';
@@ -16,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/driver', authRoutes);
 app.use('/api/auth', isauth);
-// app.use('/api/stations', stationRoutes);
+app.use('/api/stations', stationRoutes);
 // app.use('/api/predictions', predictionRoutes);
 
 

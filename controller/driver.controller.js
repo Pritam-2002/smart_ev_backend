@@ -100,3 +100,43 @@ export const login = async (req, res) => {
         return res.status(400).json({ message: "Server error during login" });
     }
 }
+
+export const updateLocation = async (req, res) => {
+    try {
+      const { latitude, longitude, address } = req.body;
+  
+      if (!latitude || !longitude) {
+        return res.status(400).json({
+          success: false,
+          message: 'Latitude and longitude are required'
+        });
+      }
+  
+      const driver = await drivermodel.findByIdAndUpdate(
+        req.userId,
+        {
+            currentLocation: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+            address: address || '',
+            lastUpdated: new Date()
+          }
+        },
+        { new: true }
+      ).select('-password');
+  
+       return res.json({
+        success: true,
+        message: 'Location updated successfully',
+        data: { 
+          currentLocation: driver.currentLocation 
+        }
+      });
+    } catch (error) {
+      console.error('Update location error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error'
+      });
+    }
+  };
