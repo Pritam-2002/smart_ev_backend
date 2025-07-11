@@ -62,6 +62,13 @@ const evStationSchema = new mongoose.Schema({
       default: 0
     }
   },
+    slotsAvailable: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 10
+  },
+
 }, {
   timestamps: true
 });

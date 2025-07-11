@@ -3,7 +3,7 @@ import { getAllStations, getStationById, getNearbyStations , updateRealTimeData 
 import { isAuth } from "../middleware/isAuth.js";
 const router=express.Router()
 
-router.get('/getAllStations', isAuth, getAllStations);
+router.get('/getAllStations', getAllStations);
 router.get('/getStationById/:id', isAuth, getStationById);
 router.get('/getNearbyStations', isAuth, getNearbyStations);
 router.patch('/updateRealTimeData/:id', isAuth, updateRealTimeData);

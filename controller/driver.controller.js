@@ -140,4 +140,4 @@ export const updateLocation = async (req, res) => {
         message: 'Server error'
       });
     }
-  };
+};

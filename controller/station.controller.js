@@ -1,61 +1,30 @@
 import EVStation from'../models/station.js';
-import validator from 'validator';
+
+import { EnrichAndSaveEVFromPredictions } from '../utils/GetNearbyevStations.js';
+
 
 export const getAllStations = async (req, res) => {
   try {
     const { 
-      lat, 
-      lng, 
-      radius = 10, 
-      chargingType,
-      batterySwap,
-      page = 1,
-      limit = 20
+      lat=12.9716, 
+      long=77.5946, 
+      radius = 10000, 
+      
     } = req.query;
 
-    let query = { isActive: true };
-    
-    if (lat && lng) {
-      query.location = {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [parseFloat(lng), parseFloat(lat)]
-          },
-          $maxDistance: radius * 1000 // Convert km to meters
-        }
-      };
-    }
 
-    
-    if (chargingType) {
-      query['chargingPoints.chargingType'] = chargingType;
-    }
-
-
-    if (batterySwap === 'true') {
-      query['batterySwapping.isAvailable'] = true;
-    }
-
-    const stations = await EVStation.find(query)
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select('-__v');
-
-    const total = await EVStation.countDocuments(query);
-
-    return res.json({
-      success: true,
-      data: {
-        stations,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / limit)
-        }
+    const predictionsResponse = await fetch(`https://api.olamaps.io/places/v1/nearbysearch?location=${lat},${long}&radius=${radius}&types=gas_station&api_key=${process.env.OLA_MAPS_API_KEY}`);
+      
+      const data = await predictionsResponse.json();
+      console.log(data)
+    let responsea
+      if (data?.predictions?.length) {
+       responsea= await EnrichAndSaveEVFromPredictions(data.predictions);
+      } else {
+        console.log("No stations found");
       }
-    });
+   return res.status(200).json(responsea)
+
   } catch (error) {
     console.error('Get stations error:', error);
     res.status(500).json({
