@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import  bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken';
 
 const driverSchema = new mongoose.Schema({
   name: {
@@ -25,7 +26,9 @@ const driverSchema = new mongoose.Schema({
     unique: true
   },
   vehicleInfo: {
-    model: String,
+    model:{
+        type: String,
+    },
     chargingType: {
       type: String,
       enum: ['AC', 'DC', 'BOTH'],
@@ -124,8 +127,8 @@ driverSchema.methods.generatetoken = function () {
     return token;
 }
 
-driverSchema.methods.comparePassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+driverSchema.methods.comparePassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
 };
 
 const usermodel=mongoose.model("Driver",driverSchema);

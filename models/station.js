@@ -1,10 +1,14 @@
-import mongoose from "mongoose";
+import  mongoose from 'mongoose';
 
-const stationSchema = new mongoose.Schema({
+const evStationSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
     trim: true
+  },
+  operator: {
+    type: String,
+    required: true
   },
   location: {
     type: {
@@ -13,67 +17,144 @@ const stationSchema = new mongoose.Schema({
       required: true
     },
     coordinates: {
-      type: [Number],
-      required: true,
-      index: '2dsphere'
+      type: [Number], // [longitude, latitude]
+      required: true
     }
   },
   address: {
     street: String,
     city: String,
     state: String,
-    zipCode: String,
-    country: String
+    pincode: String,
+    landmark: String,
+    fullAddress: String
   },
-  chargers: [{
-    type: { type: String, enum: ['AC', 'DC'], required: true },
-    power: { type: Number, required: true }, // kW
-    connectorType: { type: String, enum: ['Type1', 'Type2', 'CCS', 'CHAdeMO', 'Tesla'], required: true },
-    isAvailable: { type: Boolean, default: true },
-    pricePerKWh: Number,
-    estimatedChargingTime: Number // minutes for 80% charge
+  contactInfo: {
+    phone: String,
+    email: String,
+    website: String
+  },
+  operatingHours: {
+    monday: { open: String, close: String, is24Hours: Boolean },
+    tuesday: { open: String, close: String, is24Hours: Boolean },
+    wednesday: { open: String, close: String, is24Hours: Boolean },
+    thursday: { open: String, close: String, is24Hours: Boolean },
+    friday: { open: String, close: String, is24Hours: Boolean },
+    saturday: { open: String, close: String, is24Hours: Boolean },
+    sunday: { open: String, close: String, is24Hours: Boolean }
+  },
+  chargingPoints: [{
+    connectorType: {
+      type: String,
+      enum: ['CCS', 'CHAdeMO', 'Type2', 'Type1', 'GB/T'],
+      required: true
+    },
+    chargingType: {
+      type: String,
+      enum: ['AC', 'DC'],
+      required: true
+    },
+    powerOutput: Number, // in kW
+    count: Number,
+    isAvailable: {
+      type: Boolean,
+      default: true
+    },
+    pricePerUnit: Number, // per kWh
+    isOperational: {
+      type: Boolean,
+      default: true
+    }
   }],
   amenities: [{
     type: String,
-    enum: ['WiFi', 'Restroom', 'Restaurant', 'Shopping', 'Parking', 'Coffee', 'ATM']
+    enum: ['PARKING', 'RESTROOM', 'CAFE', 'WIFI', 'ATM', 'RESTAURANT', 'SHOPPING', 'WAITING_AREA']
   }],
-  operatingHours: {
-    monday: { open: String, close: String },
-    tuesday: { open: String, close: String },
-    wednesday: { open: String, close: String },
-    thursday: { open: String, close: String },
-    friday: { open: String, close: String },
-    saturday: { open: String, close: String },
-    sunday: { open: String, close: String }
+  batterySwapping: {
+    isAvailable: {
+      type: Boolean,
+      default: false
+    },
+    supportedVehicles: [{
+      type: String,
+      enum: ['2W', '3W', '4W', 'TRUCK', 'BUS']
+    }],
+    swappingTime: Number, // in minutes
+    pricePerSwap: Number,
+    availableBatteries: Number,
+    totalBatteries: Number
   },
-  rating: {
-    average: { type: Number, default: 0, min: 0, max: 5 },
-    count: { type: Number, default: 0 }
+  rushHourData: {
+    peakHours: [{
+      day: {
+        type: String,
+        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+      },
+      startTime: String,
+      endTime: String,
+      congestionLevel: {
+        type: String,
+        enum: ['LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH']
+      }
+    }],
+    averageWaitTime: {
+      peak: Number, // in minutes
+      offPeak: Number
+    },
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    }
   },
-  isActive: { type: Boolean, default: true },
-  lastUpdated: { type: Date, default: Date.now }
+  realTimeData: {
+    currentOccupancy: {
+      type: Number,
+      default: 0
+    },
+    totalCapacity: Number,
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    },
+    queueLength: {
+      type: Number,
+      default: 0
+    },
+    estimatedWaitTime: {
+      type: Number,
+      default: 0
+    }
+  },
+  ratings: {
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    },
+    totalReviews: {
+      type: Number,
+      default: 0
+    }
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['PENDING', 'VERIFIED', 'REJECTED'],
+    default: 'PENDING'
+  },
+  lastMaintenanceDate: Date,
+  nextMaintenanceDate: Date
 }, {
   timestamps: true
 });
 
-// Create geospatial index
-stationSchema.index({ location: '2dsphere' });
+// Index for geospatial queries
+evStationSchema.index({ "location": "2dsphere" });
+evStationSchema.index({ "operator": 1 });
+evStationSchema.index({ "isActive": 1 });
 
-// Calculate distance method
-stationSchema.methods.getDistance = function(userLat, userLng) {
-  const [stationLng, stationLat] = this.location.coordinates;
-  const R = 6371; // Earth's radius in km
-  
-  const dLat = (userLat - stationLat) * Math.PI / 180;
-  const dLng = (userLng - stationLng) * Math.PI / 180;
-  
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(stationLat * Math.PI / 180) * Math.cos(userLat * Math.PI / 180) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-const usermodel=mongoose.model("Station",stationSchema);
-export default usermodel;
+module.exports = mongoose.model('EVStation', evStationSchema);
