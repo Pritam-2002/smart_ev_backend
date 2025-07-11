@@ -1,5 +1,6 @@
 import express from 'express';
 const app = express();
+import authRoutes from './router/driver.router.js';
 
 import { configDotenv } from 'dotenv';
 configDotenv();
@@ -10,7 +11,7 @@ const PORT = process.env.PORT
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// app.use('/api/auth', authRoutes);
+app.use('/api/driver', authRoutes);
 // app.use('/api/stations', stationRoutes);
 // app.use('/api/predictions', predictionRoutes);
 
