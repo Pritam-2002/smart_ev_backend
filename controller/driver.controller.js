@@ -4,6 +4,7 @@ import drivermodel from '../models/user.model.js';
 export const register = async (req, res) => {
     try {
         const { name, email, password, phone, vehicleInfo } = req.body;
+        console.log("Registering driver with data:", req.body);
 
         const existuser = await drivermodel.findOne({ $or: [{ email }, { phone }] });
         if (existuser) {
