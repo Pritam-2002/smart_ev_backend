@@ -1,9 +1,11 @@
 import validator from "validator";
 import drivermodel from '../models/user.model.js';
+import { getOlaDirections } from "../utils/GetDirection.js";
 
 export const register = async (req, res) => {
     try {
         const { name, email, password, phone, vehicleInfo } = req.body;
+        console.log("Registering driver with data:", req.body);
 
         const existuser = await drivermodel.findOne({ $or: [{ email }, { phone }] });
         if (existuser) {
@@ -100,3 +102,73 @@ export const login = async (req, res) => {
         return res.status(400).json({ message: "Server error during login" });
     }
 }
+
+export const updateLocation = async (req, res) => {
+    try {
+      const { latitude, longitude, address } = req.body;
+        console.log("Updating driver location with data:", req.body);
+  
+      if (!latitude || !longitude) {
+        return res.status(400).json({
+          success: false,
+          message: 'Latitude and longitude are required'
+        });
+      }
+  
+      const driver = await drivermodel.findByIdAndUpdate(
+        "68716cfa803911366b9f43e4",
+        {
+            currentLocation: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+            address: address || '',
+            lastUpdated: new Date()
+          }
+        },
+        { new: true }
+      ).select('-password');
+  
+       return res.json({
+        success: true,
+        message: 'Location updated successfully',
+        data: { 
+          currentLocation: driver.currentLocation 
+        }
+      });
+    } catch (error) {
+      console.error('Update location error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error'
+      });
+    }
+};
+
+export const getDirections = async (req, res) => {
+    try {
+        const { origin_lat, origin_lng, destination_lat, destination_lng, mode } = req.body;
+        console.log(req.body)
+        
+        if (!origin_lat || !origin_lng || !destination_lat || !destination_lng) {
+            return res.status(400).json({
+                success: false,
+                message: 'Origin and destination coordinates are required'
+            });
+        }
+        
+        const directionsData = await getOlaDirections(origin_lat, origin_lng, destination_lat, destination_lng, mode);
+        console.log("directions data",directionsData)
+        
+        res.status(200).json({
+            success: true,
+            data: directionsData
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get directions',
+            error: error.message
+        });
+    }
+};
