@@ -1,11 +1,11 @@
 import express from "express";
-import { getAllStations, getStationById, getNearbyStations , updateRealTimeData } from "../controller/station.controller.js";
+import { getAllStations, findallstations } from "../controller/station.controller.js";
 import { isAuth } from "../middleware/isAuth.js";
+import { getBestEVStation } from "../utils/gemini.js";
 const router=express.Router()
 
 router.get('/getAllStations', getAllStations);
-router.get('/getStationById/:id', isAuth, getStationById);
-router.get('/getNearbyStations', isAuth, getNearbyStations);
-router.patch('/updateRealTimeData/:id', isAuth, updateRealTimeData);
+router.get('/findallstation', findallstations);
+router.post('/recommend', getBestEVStation);
 
 export default router;

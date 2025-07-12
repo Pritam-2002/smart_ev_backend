@@ -1,4 +1,7 @@
 import evmodel from '../models/station.js'; // adjust as needed
+import { configDotenv } from 'dotenv';
+configDotenv();
+
 
 // 👉 Utility: Get lat/lng from Ola place_id
 const getLatLngFromPlaceId = async (placeId) => {

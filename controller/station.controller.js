@@ -35,6 +35,15 @@ export const getAllStations = async (req, res) => {
 };
 
 
+export const findallstations=async(req,res)=>{
+    try {
+        const stations = await EVStation.find();
+        res.json(stations);
+      } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+      }
+}
+
 
 export const getStationById = async (req, res) => {
   try {

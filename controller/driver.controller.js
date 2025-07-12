@@ -106,6 +106,7 @@ export const login = async (req, res) => {
 export const updateLocation = async (req, res) => {
     try {
       const { latitude, longitude, address } = req.body;
+        console.log("Updating driver location with data:", req.body);
   
       if (!latitude || !longitude) {
         return res.status(400).json({
@@ -115,7 +116,7 @@ export const updateLocation = async (req, res) => {
       }
   
       const driver = await drivermodel.findByIdAndUpdate(
-        req.userId,
+        "68716cfa803911366b9f43e4",
         {
             currentLocation: {
             type: 'Point',
