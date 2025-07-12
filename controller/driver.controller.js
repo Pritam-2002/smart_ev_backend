@@ -1,5 +1,6 @@
 import validator from "validator";
 import drivermodel from '../models/user.model.js';
+import { getOlaDirections } from "../utils/GetDirection.js";
 
 export const register = async (req, res) => {
     try {
@@ -139,5 +140,34 @@ export const updateLocation = async (req, res) => {
         success: false,
         message: 'Server error'
       });
+    }
+};
+
+export const getDirections = async (req, res) => {
+    try {
+        const { origin_lat, origin_lng, destination_lat, destination_lng, mode } = req.body;
+        console.log(req.body)
+        
+        if (!origin_lat || !origin_lng || !destination_lat || !destination_lng) {
+            return res.status(400).json({
+                success: false,
+                message: 'Origin and destination coordinates are required'
+            });
+        }
+        
+        const directionsData = await getOlaDirections(origin_lat, origin_lng, destination_lat, destination_lng, mode);
+        console.log("directions data",directionsData)
+        
+        res.status(200).json({
+            success: true,
+            data: directionsData
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get directions',
+            error: error.message
+        });
     }
 };
