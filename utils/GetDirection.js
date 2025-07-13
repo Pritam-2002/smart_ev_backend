@@ -5,7 +5,7 @@ export const getOlaDirections = async (originLat, originLng, destinationLat, des
     try {
         const origin = `${originLat},${originLng}`;
         const destination = `${destinationLat},${destinationLng}`;
-        const api_key="iuGLoE5atdmsDxasjJxbfiHfv4WcZNh9CyNwtlT3"
+        const api_key=process.env.OLA_MAPS_API_KEY;
         
         const response = await axios.post('https://api.olamaps.io/routing/v1/directions', null, {
             params: {
